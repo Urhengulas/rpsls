@@ -1,47 +1,68 @@
+mod choice;
+mod computer;
+mod human;
+
 use std::{
     cmp::Ordering,
     io::{self, Write},
 };
 
+use crate::{choice::Choice, computer::Computer, human::Human};
+
 fn main() {
-    let game = Game::new();
+    let game = Menu::new();
     game.start()
 }
 
-struct Game {}
+struct Menu;
+
+impl Menu {
+    fn new() -> Self {
+        Self
+    }
+
+    fn start(&self) {
+        let choice = input("[0] PVP\n[1] PVC\n[2] CVC\n[3] Exit");
+
+        let mut game = match choice.as_str() {
+            "0" => Game::pvp(input("Name 1").as_str(), input("Name 2").as_str()),
+            "1" => Game::pvc(input("Name 1").as_str()),
+            "2" => Game::cvc(),
+            "3" => {
+                println!("Good bye!");
+                return;
+            }
+            _ => panic!("Invalid choice \"{}\"", choice),
+        };
+
+        game.start();
+    }
+}
+
+struct Game {
+    players: [Box<dyn Player>; 2],
+}
 
 impl Game {
-    fn new() -> Self {
-        Self {}
-    }
-
-    fn start(&self) {
-        let choice = input("[0] PVP\n[1] PVC\n[2] Exit");
-
-        match choice.as_str() {
-            "0" => {
-                let game = PVP::new([input("Name 1").as_str(), input("Name 2").as_str()]);
-                game.start();
-            }
-            "1" => {}
-            "2" => {}
-            _ => panic!("{}", choice),
-        }
-    }
-}
-
-struct PVP {
-    players: [Player; 2],
-}
-
-impl PVP {
-    fn new(names: [&str; 2]) -> Self {
+    fn pvp(name_1: &str, name_2: &str) -> Self {
         Self {
-            players: [Player::new(names[0]), Player::new(names[1])],
+            players: [Box::new(Human::new(name_1)), Box::new(Human::new(name_2))],
         }
     }
 
-    fn start(&self) {
+    fn pvc(name: &str) -> Self {
+        Self {
+            players: [Box::new(Human::new(name)), Box::new(Computer::new())],
+        }
+    }
+
+    fn cvc() -> Self {
+        Self {
+            players: [Box::new(Computer::new()), Box::new(Computer::new())],
+        }
+    }
+
+    fn start(&mut self) {
         let idx = loop {
             let [c0, c1] = [self.players[0].choose(), self.players[1].choose()];
             match c0.partial_cmp(&c1) {
@@ -51,84 +72,17 @@ impl PVP {
                 None => unreachable!(),
             }
         };
-        println!("{} won!", self.players[idx].name);
+        println!("{} won!", self.players[idx].name());
     }
 }
 
-struct Player {
-    name: String,
-}
-
-impl Player {
-    fn new(name: &str) -> Self {
-        Self {
-            name: name.to_string(),
-        }
-    }
-
-    fn choose(&self) -> Choice {
-        println!("{}", self.name);
-        let choice = input("[0] Rock\n[1] Paper\n[2] Sciccors\n[3] Lizard\n[4] Spock");
-
-        match choice.as_str() {
-            "0" => Choice::Rock,
-            "1" => Choice::Paper,
-            "2" => Choice::Sciccors,
-            "3" => Choice::Lizard,
-            "4" => Choice::Spock,
-            _ => panic!(),
-        }
-    }
-}
-
-#[derive(PartialEq, Eq)]
-enum Choice {
-    Rock,
-    Paper,
-    Sciccors,
-    Lizard,
-    Spock,
-}
-
-impl PartialOrd for Choice {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        use {Choice::*, Ordering::*};
-
-        Some(match (self, other) {
-            (Sciccors, Paper) => Greater,
-            (Paper, Rock) => Greater,
-            (Rock, Lizard) => Greater,
-            (Lizard, Spock) => Greater,
-            (Spock, Sciccors) => Greater,
-            (Sciccors, Lizard) => Greater,
-            (Lizard, Paper) => Greater,
-            (Paper, Spock) => Greater,
-            (Spock, Rock) => Greater,
-            (Rock, Sciccors) => Greater,
-
-            (Paper, Sciccors) => Less,
-            (Rock, Paper) => Less,
-            (Lizard, Rock) => Less,
-            (Spock, Lizard) => Less,
-            (Sciccors, Spock) => Less,
-            (Lizard, Sciccors) => Less,
-            (Paper, Lizard) => Less,
-            (Spock, Paper) => Less,
-            (Rock, Spock) => Less,
-            (Sciccors, Rock) => Less,
-
-            (Rock, Rock) => Equal,
-            (Paper, Paper) => Equal,
-            (Sciccors, Sciccors) => Equal,
-            (Lizard, Lizard) => Equal,
-            (Spock, Spock) => Equal,
-        })
-    }
+pub trait Player {
+    fn choose(&mut self) -> Choice;
+    fn name(&self) -> String;
 }
 
 fn input(s: &str) -> String {
-    println!("{}", s);
-    print!(">>> ");
+    print!("{s}\n>>> ");
     io::stdout().flush().unwrap();
 
     let mut buf = String::new();
