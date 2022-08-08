@@ -1,4 +1,4 @@
-use crate::{input, Choice, Player};
+use crate::{input, invalid, Choice, Player};
 
 pub struct Human {
     pub name: String,
@@ -23,7 +23,7 @@ impl Player for Human {
             "2" => Choice::Sciccors,
             "3" => Choice::Lizard,
             "4" => Choice::Spock,
-            _ => panic!(),
+            _invalid => invalid(_invalid),
         }
     }
 

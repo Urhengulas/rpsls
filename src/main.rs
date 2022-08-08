@@ -32,10 +32,18 @@ impl Menu {
                 println!("Good bye!");
                 return;
             }
-            _ => panic!("Invalid choice \"{}\"", choice),
+            _invalid => invalid(_invalid),
         };
 
-        game.start();
+        loop {
+            game.start();
+
+            match input("Play another round? y/n").as_str() {
+                "y" => continue,
+                "n" => break,
+                _invalid => invalid(_invalid),
+            }
+        }
     }
 }
 
@@ -72,7 +80,7 @@ impl Game {
                 None => unreachable!(),
             }
         };
-        println!("{} won!", self.players[idx].name());
+        println!("{} won!\n", self.players[idx].name());
     }
 }
 
@@ -90,4 +98,8 @@ fn input(s: &str) -> String {
     println!("");
 
     buf.trim().to_string()
+}
+
+fn invalid(s: &str) -> ! {
+    panic!("Invalid choice \"{}\"", s);
 }
