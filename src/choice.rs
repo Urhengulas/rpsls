@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Choice {
     Rock,
     Paper,

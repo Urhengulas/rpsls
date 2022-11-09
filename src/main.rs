@@ -5,6 +5,7 @@ mod human;
 use std::{
     cmp::Ordering,
     io::{self, Write},
+    process,
 };
 
 use crate::{choice::Choice, computer::Computer, human::Human};
@@ -73,6 +74,11 @@ impl Game {
     fn start(&mut self) {
         let idx = loop {
             let [c0, c1] = [self.players[0].choose(), self.players[1].choose()];
+            println!(
+                "{}: {c0:?}\n{}: {c1:?}\n",
+                self.players[0].name(),
+                self.players[1].name()
+            );
             match c0.partial_cmp(&c1) {
                 Some(Ordering::Equal) => println!("Draw!\n"),
                 Some(Ordering::Greater) => break 0,
@@ -101,5 +107,6 @@ fn input(s: &str) -> String {
 }
 
 fn invalid(s: &str) -> ! {
-    panic!("Invalid choice \"{}\"", s);
+    println!("Invalid choice \"{}\"", s);
+    process::exit(0);
 }

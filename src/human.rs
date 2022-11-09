@@ -1,7 +1,7 @@
 use crate::{input, invalid, Choice, Player};
 
 pub struct Human {
-    pub name: String,
+    name: String,
 }
 
 impl Human {
