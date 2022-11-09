@@ -1,5 +1,6 @@
 use crate::{input, invalid, Choice, Player};
 
+#[derive(Debug)]
 pub struct Human {
     name: String,
 }

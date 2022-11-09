@@ -6,6 +6,7 @@ use crate::{choice::Choice, Player};
 
 static COUNTER: AtomicU8 = AtomicU8::new(0);
 
+#[derive(Debug)]
 pub struct Computer {
     id: u8,
 }

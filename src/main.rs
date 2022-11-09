@@ -49,35 +49,44 @@ impl Menu {
 }
 
 struct Game {
-    players: [Box<dyn Player>; 2],
+    players: [(Box<dyn Player>, u32); 2],
 }
 
 impl Game {
     fn pvp(name_1: &str, name_2: &str) -> Self {
         Self {
-            players: [Box::new(Human::new(name_1)), Box::new(Human::new(name_2))],
+            players: [
+                (Box::new(Human::new(name_1)), 0),
+                (Box::new(Human::new(name_2)), 0),
+            ],
         }
     }
 
     fn pvc(name: &str) -> Self {
         Self {
-            players: [Box::new(Human::new(name)), Box::new(Computer::new())],
+            players: [
+                (Box::new(Human::new(name)), 0),
+                (Box::new(Computer::new()), 0),
+            ],
         }
     }
 
     fn cvc() -> Self {
         Self {
-            players: [Box::new(Computer::new()), Box::new(Computer::new())],
+            players: [
+                (Box::new(Computer::new()), 0),
+                (Box::new(Computer::new()), 0),
+            ],
         }
     }
 
     fn start(&mut self) {
         let idx = loop {
-            let [c0, c1] = [self.players[0].choose(), self.players[1].choose()];
+            let [c0, c1] = [self.players[0].0.choose(), self.players[1].0.choose()];
             println!(
                 "{}: {c0:?}\n{}: {c1:?}\n",
-                self.players[0].name(),
-                self.players[1].name()
+                self.players[0].0.name(),
+                self.players[1].0.name()
             );
             match c0.partial_cmp(&c1) {
                 Some(Ordering::Equal) => println!("Draw!\n"),
@@ -86,7 +95,16 @@ impl Game {
                 None => unreachable!(),
             }
         };
-        println!("{} won!\n", self.players[idx].name());
+        self.players[idx].1 += 1;
+        println!("{} won!\n", self.players[idx].0.name());
+        println!(
+            "{}:{}\n{:pad0$}:{}",
+            self.players[0].0.name(),
+            self.players[1].0.name(),
+            self.players[0].1,
+            self.players[1].1,
+            pad0 = self.players[0].0.name().len(),
+        )
     }
 }
 
@@ -101,7 +119,7 @@ fn input(s: &str) -> String {
 
     let mut buf = String::new();
     io::stdin().read_line(&mut buf).unwrap();
-    println!("");
+    println!();
 
     buf.trim().to_string()
 }
